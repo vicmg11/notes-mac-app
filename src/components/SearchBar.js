@@ -51,6 +51,6 @@ const SearchHeader = styled.div`
 	@media (max-width: 435px) {
 		.search-bar {
 			display: none;
-		}	
-	}	
+		}
+	}
 `;

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext, useEffect } from 'react';
+import React, { useState, useRef, useContext } from 'react';
 import { NoteContext } from './NoteContext';
 import styled from 'styled-components';
 import FolderHeader from '../components/FolderHeader';
@@ -54,7 +54,6 @@ function Folders({ folders }) {
 	};
 
 	const handleBlur = (e) => {
-		console.log('blur---------------> ', suggestedName, newFolder);
 
 		let findIndex = folders.findIndex((item) => item.name === newFolder);
 		if (findIndex >= 0 && suggestedName !== newFolder) {
@@ -73,15 +72,12 @@ function Folders({ folders }) {
 	};
 
 	const updateFolder = (e) => {
-		console.log(e.target.value);
 		setNewFolder(e.target.value);
 	};
 
 	const selectFolder = (folder) => {
-		//console.log('folder clicked', folder);
 		noteFn.setActiveFolder('folder-clicked');
 		const index = noteFn.notesList.findIndex((item) => item.folder === folder);
-		//console.log('folde index', index);
 		//Intialize to new folder and update accordingly some folders may not have notes
 		noteFn.setActiveClass('active');
 		if (index >= 0) {
@@ -94,10 +90,6 @@ function Folders({ folders }) {
 		noteFn.setCurrentFolder(folder);
 		noteFn.setSearch('');
 	};
-
-	useEffect(() => {
-		console.log('use effect folder.js', noteFn.currentFolder, folders, noteFn.folderList);
-	});
 
 	return (
 		<MyFolders>

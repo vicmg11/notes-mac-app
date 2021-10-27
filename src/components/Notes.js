@@ -1,32 +1,36 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { NoteContext } from '../components/NoteContext';
 import HeaderBtns from './HeaderBtns';
 import Note from './Note';
 
-function Notes({ notesList }) {
-	const noteFn = useContext(NoteContext);
+function Notes({ search, notesList, currentFolder, selectFirstElement, activeClass, currentId }) {
 	const [ newList, setNewList ] = useState([]);
 
 	useEffect(
 		() => {
-			let filteredList;
-			if (noteFn.search) {
-				filteredList = noteFn.notesList.filter((item, _) => item.text.toLowerCase().includes(noteFn.search));
-			} else {
-				filteredList = noteFn.notesList.filter((item, _) => item.folder === noteFn.currentFolder);
+			function getList() {
+				let filteredList;
+				if (search) {
+					filteredList = notesList.filter((item, _) => item && item.text.toLowerCase().includes(search));
+				} else {
+					filteredList = notesList.filter((item, _) => item && item.folder === currentFolder);
+				}
+				setNewList(filteredList);
+				selectFirstElement(filteredList);
 			}
-			setNewList(filteredList);
-			noteFn.selectFirstElement(filteredList);
+			getList();
 		},
-		[ noteFn.search, noteFn.notesList, noteFn.currentFolder ]
+		[ search, notesList, currentFolder ]
 	);
 
 	return (
 		<MyMainNotes>
 			<HeaderBtns />
 			<div className="body-notes">
-				{newList && newList.map((note, index) => <Note note={note} index={index} key={index} />)}
+				{newList &&
+					newList.map((note, index) => (
+						<Note note={note} key={index} search={search} activeClass={activeClass} currentId={currentId} />
+					))}
 			</div>
 		</MyMainNotes>
 	);

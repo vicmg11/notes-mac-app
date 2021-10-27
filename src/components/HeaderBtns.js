@@ -18,25 +18,15 @@ const Header = () => {
 	};
 
 	const handleConfirm = () => {
-		console.log('check handleConfirm');
 		setOpen(false);
-		//remove active selected class
-		noteFn.setActiveFolder('');
-		//delete folder
-		noteFn.folderDispatch({ type: 'DELETE_FOLDER', payload: { name: noteFn.currentFolder } });
-		//delete notes from the folder just removed
-		noteFn.notesDispatch({ type: 'DELETE_NOTE_BY_FOLDER', payload: { folder: noteFn.currentFolder } });
-		//intialize folder
-		noteFn.afterFolderDeleted();
+		noteFn.dataDeleteFolder(noteFn.currentFolder);
 	};
 
 	const handleCancel = () => {
-		console.log('check cancel');
 		setOpen(false);
 	};
 
 	const checkWhattoDelete = () => {
-		console.log('que pasa? ', noteFn.activeFolder);
 		noteFn.setSearch('');
 		if (noteFn.activeFolder === 'folder-clicked') {
 			if (noteFn.currentFolder === 'Notes') {
@@ -50,12 +40,16 @@ const Header = () => {
 	};
 
 	const editNote = () => {
+		//you can delete it not need it
+		if (noteFn.note.text === '' || noteFn.note.text === undefined) {
+			return;
+		}
 		noteFn.newNote();
 		noteFn.setSearch('');
 		noteFn.textRef.current.focus();
 	};
-
-	const notes = noteFn.notesList.filter((item) => item.folder === noteFn.currentFolder);
+ 
+	const notes = noteFn.notesList.filter((item) => item && item.folder === noteFn.currentFolder);
 	return (
 		<BtnHeader className="header">
 			<AlertBox

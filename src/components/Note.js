@@ -7,25 +7,29 @@ import { Icon } from 'semantic-ui-react';
 import { NoteContext } from '../components/NoteContext';
 import { getTimeFormat } from '../library/Librabry';
 
-function Note({ note, index }) {
+const Note = ({ note, search, activeClass, currentId }) => {
 	const noteFn = useContext(NoteContext);
+	if (note.text === null) {
+		return <div />;
+	}
 	let cleanArr = note.text.split('\n').filter((item) => item !== '');
-
 	return (
 		<MyNote
-			className={` ${noteFn.search ? 'search-view' : ''} ${note.id === noteFn.currentId
-				? noteFn.activeClass
-				: ''}`}
+			className={` ${search ? 'search-view' : ''} ${note.id === currentId ? activeClass : ''}`}
 			onClick={() => noteFn.makeActive(note.id)}
 		>
 			<div className="note-text note-ellipsis">
 				<b>{cleanArr[0] || 'New Note'}</b>
 			</div>
-			<div className={`note-info ${noteFn.search ? 'show-folder' : ''}`}>
+			<div className={`note-info ${search ? 'show-folder' : ''}`}>
 				<div>
-					{new Date(note.date) > new Date() ? moment(note.date).format('DD/MM/YY') : getTimeFormat(note.date)}
+					{moment().subtract(1, 'days') < new Date(note.date) ? (
+						getTimeFormat(note.date)
+					) : (
+						moment(note.date).format('DD/MM/YY')
+					)}
 				</div>
-				{noteFn.search ? (
+				{search ? (
 					<div>
 						<Icon name="folder outline" />
 						{note.folder}
@@ -36,7 +40,7 @@ function Note({ note, index }) {
 			</div>
 		</MyNote>
 	);
-}
+};
 
 export default Note;
 

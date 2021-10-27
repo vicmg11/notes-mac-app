@@ -11,7 +11,14 @@ function Index() {
 		<div>
 			<div className={noteFn.openFolder ? 'folder-open' : 'folder-close'}>
 				{noteFn.openFolder && <Folders folders={noteFn.folderList} />}
-				<Notes />
+				<Notes
+					search={noteFn.search}
+					notesList={noteFn.notesList}
+					currentFolder={noteFn.currentFolder}
+					selectFirstElement={noteFn.selectFirstElement}
+					activeClass={noteFn.activeClass}
+					currentId={noteFn.currentId}
+				/>
 				<InputNotes />
 			</div>
 		</div>

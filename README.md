@@ -12,8 +12,7 @@ cd notes-mac-app
 
 npm install (install node dependencies)
 
-npm start
-
+npm start or yarn start
 
 ### `yarn start`
 
