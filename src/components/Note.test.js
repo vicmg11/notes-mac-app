@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import '@testing-library/jest-dom';
+
 import Note from './Note';
 
 describe('Render Note Component', () => {
@@ -14,7 +15,10 @@ describe('Render Note Component', () => {
 				createdAt: '2021-10-27T05:56:28.000Z',
 				updatedAt: '2021-10-27T05:56:28.000Z'
 			},
-      key: 1
+      key: 1,
+      search: "MySearch",
+      activeClass : "active",
+      currentId: 1
 		};
 		const div = document.createElement('div');
 		ReactDOM.render(<Note {...props} />, div);

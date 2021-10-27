@@ -26,7 +26,7 @@ const Note = ({ note, search, activeClass, currentId }) => {
 					{moment().subtract(1, 'days') < new Date(note.date) ? (
 						getTimeFormat(note.date)
 					) : (
-						moment(note.date).format('DD/MM/YY')
+						moment(note.date).format('MM/DD/YY')
 					)}
 				</div>
 				{search ? (

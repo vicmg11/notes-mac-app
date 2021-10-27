@@ -1,6 +1,6 @@
 import React, { createContext, useState, useReducer, useEffect, useRef } from 'react';
 import moment from 'moment';
-import axios from 'axios';
+import * as APIService from '../library/api';
 export const NoteContext = createContext();
 
 // This context provider is passed to any component requiring the context
@@ -9,6 +9,7 @@ export const NoteProvider = ({ children }) => {
 	const [ note, setNote ] = useState({});
 	const [ currentId, setCurrentId ] = useState('');
 	const [ activeClass, setActiveClass ] = useState('active');
+	const [ loading, setLoading ] = useState(false);
 	const [ search, setSearch ] = useState('');
 	const [ currentFolder, setCurrentFolder ] = useState('Notes');
 	const [ activeFolder, setActiveFolder ] = useState(''); //For folder removal
@@ -87,7 +88,7 @@ export const NoteProvider = ({ children }) => {
 				return [ action.payload, ...prevState ];
 			case 'UPDATE_NOTE':
 				const index = prevState.findIndex((item) => item && item.id === action.payload.id);
-				console.log(index, action.payload.position);
+				//console.log(index, action.payload.position);
 				if (index >= 0 || action.payload.position !== undefined) {
 					let indexToUpdate = action.payload.position !== undefined ? action.payload.position : index;
 					//Updated Note goes to top of list
@@ -165,14 +166,12 @@ export const NoteProvider = ({ children }) => {
 	*/
 	const dataUpdate = async (data) => {
 		try {
-			const url = process.env.REACT_APP_API_URL + '/api/note/update';
-			await axios.post(url, data).then((respond) => {
-				if (respond.status === 200) {
-					notesDispatch({ type: 'UPDATE_NOTE', payload: data });
-				} else {
-					console.log('Error updating data!');
-				}
-			});
+			const response = await APIService.updateNote(data);
+			if (response.status === 200) {
+				notesDispatch({ type: 'UPDATE_NOTE', payload: data });
+			} else {
+				console.log('Error updating data!');
+			}
 		} catch (err) {
 			console.log('Error inserting data-----------', err);
 		}
@@ -183,15 +182,13 @@ export const NoteProvider = ({ children }) => {
 	*/
 	const dataDelete = async (id) => {
 		try {
-			const url = process.env.REACT_APP_API_URL + '/api/note/delete';
-			await axios.post(url, { id: id }).then((respond) => {
-				if (respond.status === 200) {
-					notesDispatch({ type: 'DELETE_NOTE', payload: { id: id } });
-					continueDeleting(id);
-				} else {
-					console.log('Error updating data!');
-				}
-			});
+			const response = await APIService.deleteNote(id);
+			if (response.status === 200) {
+				notesDispatch({ type: 'DELETE_NOTE', payload: { id: id } });
+				continueDeleting(id);
+			} else {
+				console.log('Error updating data!');
+			}
 		} catch (err) {
 			console.log('Error inserting data-----------', err);
 		}
@@ -202,21 +199,19 @@ export const NoteProvider = ({ children }) => {
 	*/
 	const dataDeleteFolder = async (folder) => {
 		try {
-			const url = process.env.REACT_APP_API_URL + '/api/note/deleteFolder';
-			await axios.post(url, { folder: folder }).then((respond) => {
-				if (respond.status === 200) {
-					//remove active selected class
-					setActiveFolder('');
-					//delete folder
-					folderDispatch({ type: 'DELETE_FOLDER', payload: { name: folder } });
-					//delete notes from the folder just removed
-					notesDispatch({ type: 'DELETE_NOTE_BY_FOLDER', payload: { folder: folder } });
-					//intialize folder
-					afterFolderDeleted();
-				} else {
-					console.log('Error deleting folder!');
-				}
-			});
+			const response = await APIService.deleteFolder(folder);
+			if (response.status === 200) {
+				//remove active selected class
+				setActiveFolder('');
+				//delete folder
+				folderDispatch({ type: 'DELETE_FOLDER', payload: { name: folder } });
+				//delete notes from the folder just removed
+				notesDispatch({ type: 'DELETE_NOTE_BY_FOLDER', payload: { folder: folder } });
+				//intialize folder
+				afterFolderDeleted();
+			} else {
+				console.log('Error deleting folder!');
+			}
 		} catch (err) {
 			console.log('Error inserting data-----------', err);
 		}
@@ -227,21 +222,19 @@ export const NoteProvider = ({ children }) => {
 	*/
 	const dataInsert = async (data) => {
 		try {
-			const url = process.env.REACT_APP_API_URL + '/api/note/insert';
-			await axios.post(url, data).then((respond) => {
-				if (respond.status === 200) {
-					if (currentId === 'tmpNewNoteId') {
-						data.position = notesList.findIndex((item) => item.id === 'tmpNewNoteId');
-					}
-					data.id = respond.data.note.id;
-					setCurrentId(data.id);
-					setActiveClass('active');
-					notesDispatch({ type: 'UPDATE_NOTE', payload: data });
-					return data.id;
-				} else {
-					console.log('Error saving data!');
+			const response = await APIService.insertNote(data);
+			if (response.status === 200) {
+				if (currentId === 'tmpNewNoteId') {
+					data.position = notesList.findIndex((item) => item.id === 'tmpNewNoteId');
 				}
-			});
+				data.id = response.data.note.id;
+				setCurrentId(data.id);
+				setActiveClass('active');
+				notesDispatch({ type: 'UPDATE_NOTE', payload: data });
+				return data.id;
+			} else {
+				console.log('Error saving data!');
+			}
 		} catch (err) {
 			console.log('Error inserting data-----------', err);
 		}
@@ -251,46 +244,61 @@ export const NoteProvider = ({ children }) => {
 	*	Call the api once the component is mounted and get the notes
 	*/
 	useEffect(() => {
+		let mounted = true;
 		async function loadData() {
 			try {
-				let url = process.env.REACT_APP_API_URL + '/api/note/get';
-				const respond = await axios.post(url, {});
-				if (respond.status === 200) {
-					let dbFolders = {};
-					let dbNotes = respond.data.notes;
-					let firstNote;
-					for (let idx in dbNotes) {
-						const newNote = {
-							id: dbNotes[idx].id,
-							text: dbNotes[idx].content,
-							date: dbNotes[idx].date,
-							folder: dbNotes[idx].folder,
-							createdAt: dbNotes[idx].createdAt,
-							updatedAt: dbNotes[idx].updatedAt
-						};
-						if (dbNotes[idx].folder === 'Notes') {
-							firstNote = newNote;
-						}
-						notesDispatch({ type: 'NEW_NOTE', payload: newNote });
-						dbFolders[newNote.folder] = 'dbFolder';
-					}
-					selectFirstElement([ firstNote ]);
-					for (let folder in dbFolders) {
-						folderDispatch({
-							type: 'ADD_FOLDER',
-							payload: {
-								name: folder
+				const response = await APIService.getNotes();
+				if (mounted) {
+					if (response.status) {
+						let dbFolders = {};
+						let dbNotes = response.notes;
+						let firstNote;
+						for (let idx in dbNotes) {
+							const newNote = {
+								id: dbNotes[idx].id,
+								text: dbNotes[idx].content,
+								date: dbNotes[idx].date,
+								folder: dbNotes[idx].folder,
+								createdAt: dbNotes[idx].createdAt,
+								updatedAt: dbNotes[idx].updatedAt
+							};
+							if (dbNotes[idx].folder === 'Notes') {
+								firstNote = newNote;
 							}
-						});
+							notesDispatch({ type: 'NEW_NOTE', payload: newNote });
+							dbFolders[newNote.folder] = 'dbFolder';
+						}
+						if (firstNote !== undefined) {
+							selectFirstElement([ firstNote ]);
+							for (let folder in dbFolders) {
+								folderDispatch({
+									type: 'ADD_FOLDER',
+									payload: {
+										name: folder
+									}
+								});
+							}
+						} else {
+							folderDispatch({
+								type: 'ADD_FOLDER',
+								payload: {
+									name: 'Notes'
+								}
+							});
+						}
+						setLoading(true);
+					} else {
+						console.log('Error loading data!');
 					}
-				} else {
-					console.log('Error loading data!');
 				}
 			} catch (err) {
 				console.log('Error loading data-----------', err);
 			}
 		}
 		loadData();
+		return () => {
+			mounted = false;
+		};
 	}, []);
 
 	return (
@@ -306,6 +314,7 @@ export const NoteProvider = ({ children }) => {
 				activeFolder,
 				textRef,
 				search,
+				loading,
 				dataInsert,
 				dataUpdate,
 				dataDeleteFolder,

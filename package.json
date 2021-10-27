@@ -22,7 +22,6 @@
   },
   "eslintConfig": {
     "extends": [
-      "react-app",
       "react-app/jest"
     ]
   },
@@ -39,6 +38,8 @@
     ]
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^5.14.1"
+    "@testing-library/jest-dom": "^5.14.1",
+    "@testing-library/react": "^12.1.2",
+    "jest-fetch-mock": "^3.0.3"
   }
 }

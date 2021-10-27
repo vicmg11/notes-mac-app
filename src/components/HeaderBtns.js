@@ -3,12 +3,12 @@ import { NoteContext } from './NoteContext';
 import AlertBox from './AlertBox';
 import styled from 'styled-components';
 
-const Header = () => {
+const Header = ({ notesList, currentFolder, openFolder, activeFolder, note }) => {
 	const noteFn = useContext(NoteContext);
 	const [ open, setOpen ] = useState(false);
 
 	const alertUser = () => {
-		const items = noteFn.notesList.filter((item) => item.folder === noteFn.currentFolder);
+		const items = notesList.filter((item) => item.folder === currentFolder);
 		//do not prompt to delete folder if folders does not have any notes
 		if (items.length > 0) {
 			setOpen(true);
@@ -19,7 +19,7 @@ const Header = () => {
 
 	const handleConfirm = () => {
 		setOpen(false);
-		noteFn.dataDeleteFolder(noteFn.currentFolder);
+		noteFn.dataDeleteFolder(currentFolder);
 	};
 
 	const handleCancel = () => {
@@ -28,8 +28,8 @@ const Header = () => {
 
 	const checkWhattoDelete = () => {
 		noteFn.setSearch('');
-		if (noteFn.activeFolder === 'folder-clicked') {
-			if (noteFn.currentFolder === 'Notes') {
+		if (activeFolder === 'folder-clicked') {
+			if (currentFolder === 'Notes') {
 				//notes folder cannot be deleted
 				return;
 			}
@@ -40,40 +40,35 @@ const Header = () => {
 	};
 
 	const editNote = () => {
-		//you can delete it not need it
-		if (noteFn.note.text === '' || noteFn.note.text === undefined) {
+		//not do anything if note is new
+		if (note.text === '' || note.text === undefined) {
 			return;
 		}
 		noteFn.newNote();
 		noteFn.setSearch('');
-		noteFn.textRef.current.focus();
+		noteFn.textRef && noteFn.textRef.current.focus();
 	};
- 
-	const notes = noteFn.notesList.filter((item) => item && item.folder === noteFn.currentFolder);
+
+	const notes = notesList.filter((item) => item && item.folder === currentFolder);
+	const disable = notes.length > 0 && (note && (note.text === '' || note.text === undefined));
 	return (
 		<BtnHeader className="header">
 			<AlertBox
 				classType={`alert-box ${open ? '' : 'hide-box'}`}
-				title={`Are you sure you want to delete "${noteFn.currentFolder}"?`}
-				subtitle={'All notes and any subfolders will be deleted.'}
+				title={`Are you sure you want to delete "${currentFolder}"?`}
+				subtitle={'All notes will be deleted.'}
 				cancelTxt={'Cancel'}
 				deleteTxt={'Delete Folder'}
 				handleCancel={handleCancel}
 				handleConfirm={handleConfirm}
 				icon={'./note.png'}
 			/>
-			<div className={`action-btns ${noteFn.openFolder ? '' : 'close-folder'}`}>
-				<div className="action-btn folder" onClick={() => noteFn.setOpenFolder(!noteFn.openFolder)} />
+			<div className={`action-btns ${openFolder ? '' : 'close-folder'}`}>
+				<div className="action-btn folder" onClick={() => noteFn.setOpenFolder(!openFolder)} />
+				<div className={`action-btn trash ${currentFolder} ${activeFolder}`} onClick={checkWhattoDelete} />
 				<div
-					className={`action-btn trash ${noteFn.currentFolder} ${noteFn.activeFolder}`}
-					onClick={checkWhattoDelete}
-				/>
-				<div
-					className={`action-btn edit ${notes.length > 0 &&
-					(noteFn.note.text === '' || noteFn.note.text === undefined)
-						? 'standby-mode'
-						: ''}`}
-					onClick={editNote}
+					className={`action-btn edit ${disable ? 'standby-mode' : ''}`}
+					onClick={disable ? () => false : editNote}
 				/>
 			</div>
 		</BtnHeader>

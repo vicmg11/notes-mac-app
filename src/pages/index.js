@@ -18,8 +18,12 @@ function Index() {
 					selectFirstElement={noteFn.selectFirstElement}
 					activeClass={noteFn.activeClass}
 					currentId={noteFn.currentId}
+					openFolder={noteFn.openFolder}
+					activeFolder={noteFn.activeFolder}
+					note={noteFn.note}
+					loading={noteFn.loading}
 				/>
-				<InputNotes />
+				<InputNotes note={noteFn.note} search={noteFn.search}/>
 			</div>
 		</div>
 	);

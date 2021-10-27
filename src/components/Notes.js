@@ -3,7 +3,18 @@ import styled from 'styled-components';
 import HeaderBtns from './HeaderBtns';
 import Note from './Note';
 
-function Notes({ search, notesList, currentFolder, selectFirstElement, activeClass, currentId }) {
+function Notes({
+	search,
+	notesList,
+	currentFolder,
+	selectFirstElement,
+	activeClass,
+	currentId,
+	openFolder,
+	activeFolder,
+	note,
+	loading
+}) {
 	const [ newList, setNewList ] = useState([]);
 
 	useEffect(
@@ -11,7 +22,9 @@ function Notes({ search, notesList, currentFolder, selectFirstElement, activeCla
 			function getList() {
 				let filteredList;
 				if (search) {
-					filteredList = notesList.filter((item, _) => item && item.text.toLowerCase().includes(search));
+					filteredList = notesList.filter(
+						(item, _) => item && item.text.toLowerCase().includes(search.toLowerCase())
+					);
 				} else {
 					filteredList = notesList.filter((item, _) => item && item.folder === currentFolder);
 				}
@@ -25,12 +38,23 @@ function Notes({ search, notesList, currentFolder, selectFirstElement, activeCla
 
 	return (
 		<MyMainNotes>
-			<HeaderBtns />
+			<HeaderBtns
+				notesList={notesList}
+				currentFolder={currentFolder}
+				openFolder={openFolder}
+				activeFolder={activeFolder}
+				note={note}
+			/>
+
 			<div className="body-notes">
-				{newList &&
+				{loading ? (
+					newList &&
 					newList.map((note, index) => (
 						<Note note={note} key={index} search={search} activeClass={activeClass} currentId={currentId} />
-					))}
+					))
+				) : (
+					<div className="loading-msg">Loading....</div>
+				)}
 			</div>
 		</MyMainNotes>
 	);
@@ -43,5 +67,12 @@ const MyMainNotes = styled.div`
 	.body-notes {
 		border-right: 1px solid #e9e9e9;
 		height: 100vh;
+	}
+	.loading-msg {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-top: 40px;
+		font-size: 0.8em;
 	}
 `;
